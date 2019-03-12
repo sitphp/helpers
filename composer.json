@@ -1,0 +1,28 @@
+{
+    "name": "sitphp/helpers",
+    "description": "Simple PHP helpers",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alexandre GEISWILLER",
+            "email": "alexandre.geiswiller@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1"
+    },
+    "require-dev": {
+        "gealex/doublit": "~2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "SitPHP\\Helpers\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SitPHP\\Styles\\Tests\\": "tests"
+        }
+    }
+}
