@@ -16,7 +16,7 @@ class Text
     static function startsWith(string $haystack, string $needle)
     {
         $length = strlen($needle);
-        if($length == 0){
+        if ($length == 0) {
             return true;
         }
         return (substr($haystack, 0, $length) === $needle);
@@ -37,6 +37,20 @@ class Text
         }
 
         return (substr($haystack, -$length) === $needle);
+    }
+
+
+    /**
+     * Check if string contains
+     *
+     * @param string $haystack
+     * @param $needle
+     * @return string
+     * @see https://www.php.net/manual/function.strstr.php
+     */
+    static function contains(string $haystack, $needle)
+    {
+        return strstr($haystack, $needle) ? true : false;
     }
 
     /**
@@ -68,7 +82,7 @@ class Text
     static function cut(string $text, int $length, $ellipsis = '...', bool $trim = true)
     {
         if ($length < mb_strlen($text)) {
-            if($trim){
+            if ($trim) {
                 while ($text[$length] === ' ') {
                     $length--;
                 }
@@ -77,7 +91,7 @@ class Text
             if ($ellipsis === null) {
                 return $text;
             }
-            if(!is_string($ellipsis)){
+            if (!is_string($ellipsis)) {
                 throw new \InvalidArgumentException('Invalid $ellipsis argument : expected string or null');
             }
             $text .= $ellipsis;
@@ -105,12 +119,13 @@ class Text
 
     /**
      * Remove accents
-     * (copied from wordpress : https://github.com/WordPress/WordPress/blob/master/wp-includes/formatting.php)
      *
      * @param string $text
      * @return string
+     * @see  https://github.com/WordPress/WordPress/blob/master/wp-includes/formatting.php
      */
-    static function removeAccents(string $text){
+    static function removeAccents(string $text)
+    {
         $chars = array(
             // Decompositions for Latin-1 Supplement
             'ª' => 'a',
@@ -441,6 +456,6 @@ class Text
             'ǜ' => 'u',
         );
 
-        return strtr( $text, $chars );
+        return strtr($text, $chars);
     }
 }

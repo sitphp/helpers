@@ -48,4 +48,8 @@ class TextTest extends TestCase
         $this->assertEquals(8, mb_strlen(Text::chain(8)));
         $this->assertNotContains('c', Text::chain(8, 'ab'));
     }
+
+    function testContains(){
+        $this->assertTrue(Text::contains('my long message', 'long'));
+    }
 }

@@ -197,9 +197,9 @@ class CollectionTest extends \Doublit\TestCase
         $person_3 = ['name' => 'name-3', 'surname' => 'family-2', 'has_children' => 1];
         $person_4 = ['name' => 'name-4', 'surname' => 'family-3', 'has_children' => true];
 
-        $collection = new Collection([$person_3, $person_1, $person_4, $person_2]);
+        $collection = new Collection(['person3' => $person_3, 'person1' => $person_1, 'person4' => $person_4, 'person2' => $person_2]);
 
-        $expected = [$person_1, $person_2, $person_3, $person_4];
+        $expected = ['person1' => $person_1, 'person2' => $person_2, 'person3' => $person_3, 'person4' => $person_4];
         $this->assertEquals($expected, $collection->sortBy('name')->toArray());
         $this->assertEquals($expected, $collection->sortCallback(function($a, $b){
             return $a['surname'] > $b['surname'];

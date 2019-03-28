@@ -375,7 +375,7 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
      * @return Collection
      */
     function sortBy(string $key, bool $reverse = false){
-        usort($this->items, function($a, $b) use($key, $reverse){
+        uasort($this->items, function($a, $b) use($key, $reverse){
             if(!isset($a[$key]) || !isset($b[$key])){
                 return 0;
             }
@@ -398,7 +398,7 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
      * @return Collection
      */
     function sortCallback(callable $callback){
-        usort($this->items, $callback);
+        uasort($this->items, $callback);
         return $this;
     }
 

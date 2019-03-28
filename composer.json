@@ -22,7 +22,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "SitPHP\\Styles\\Tests\\": "tests"
+            "SitPHP\\Helpers\\Tests\\": "tests"
         }
     }
 }
