@@ -2,7 +2,13 @@
 
 namespace SitPHP\Helpers;
 
-class Collection implements \Iterator, \ArrayAccess, \Countable
+use ArrayAccess;
+use Closure;
+use Countable;
+use InvalidArgumentException;
+use Iterator;
+
+class Collection implements Iterator, ArrayAccess, Countable
 {
 
     protected $items = [];
@@ -147,7 +153,7 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
             return;
         }
         if(!is_string($key) && !is_int($key)){
-            throw new \InvalidArgumentException('Invalid $key item argument : expected string, int or null');
+            throw new InvalidArgumentException('Invalid $key item argument : expected string, int or null');
         }
         $this->items[$key] = $item;
     }
@@ -219,7 +225,7 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
      */
     function hasKeyValue($key, $value, $strict = false)
     {
-        return $this->findBy($key, $value, $strict) ? true : false;
+        return $this->firstWith($key, $value, $strict) ? true : false;
     }
 
     /**
@@ -230,7 +236,7 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
      * @param bool $strict
      * @return bool|mixed
      */
-    function findBy(string $key, $value, $strict = true)
+    function firstWith(string $key, $value, $strict = true)
     {
         if ($strict) {
             foreach ($this->items as $item) {
@@ -249,6 +255,24 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
     }
 
     /**
+     * Return first item matching any key of values
+     *
+     * @param string $key
+     * @param array $values
+     * @param bool $strict
+     * @return bool|mixed
+     */
+    function firstIn(string $key, array $values, $strict = true)
+    {
+        foreach ($this->items as $item) {
+            if (in_array($this->getItemValue($item, $key), $values, $strict)) {
+                return $item;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Return first item not matching key value
      *
      * @param string $key
@@ -256,7 +280,7 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
      * @param bool $strict
      * @return bool|mixed
      */
-    function findNotBy(string $key, $value, $strict = true)
+    function firstNotWith(string $key, $value, $strict = true)
     {
         if ($strict) {
             foreach ($this->items as $item) {
@@ -275,12 +299,29 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
     }
 
     /**
+     *  Return first item not matching any key of values
+     *
+     * @param string $key
+     * @param array $values
+     * @param bool $strict
+     * @return mixed|null
+     */
+    function firstNotIn(string $key, array $values, $strict = true){
+        foreach ($this->items as $item) {
+            if (!in_array($this->getItemValue($item, $key), $values, $strict)) {
+                return $item;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Return first item matching callback
      *
-     * @param \Closure $callback
+     * @param Closure $callback
      * @return bool|mixed
      */
-    function findCallback(\Closure $callback)
+    function firstCallback(Closure $callback)
     {
         foreach ($this->items as $key => $item) {
             if ($callback($item, $key)) {
@@ -290,8 +331,117 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
         return null;
     }
 
+
     /**
-     * Return collection of items matching key value(s)
+     * Return last item matching key value
+     *
+     * @param string $key
+     * @param $value
+     * @param bool $strict
+     * @return bool|mixed
+     */
+    function lastWith(string $key, $value, $strict = true)
+    {
+        $found = null;
+        if ($strict) {
+            foreach ($this->items as $item) {
+                if ($this->getItemValue($item, $key) === $value) {
+                    $found = $item;
+                }
+            }
+        } else {
+            foreach ($this->items as $item) {
+                if ($this->getItemValue($item, $key) == $value) {
+                    $found = $item;
+                }
+            }
+        }
+        return $found;
+    }
+
+    /**
+     * Return last item matching any key of values
+     *
+     * @param string $key
+     * @param array $values
+     * @param bool $strict
+     * @return bool|mixed
+     */
+    function lastIn(string $key, array $values, $strict = true)
+    {
+        $found = null;
+        foreach ($this->items as $item) {
+            if (in_array($this->getItemValue($item, $key), $values, $strict)) {
+                $found = $item;
+            }
+        }
+        return $found;
+    }
+
+    /**
+     * Return last item not matching key value
+     *
+     * @param string $key
+     * @param $value
+     * @param bool $strict
+     * @return bool|mixed
+     */
+    function lastNotWith(string $key, $value, $strict = true)
+    {
+        $found = null;
+        if ($strict) {
+            foreach ($this->items as $item) {
+                if ($this->getItemValue($item, $key) !== $value) {
+                    $found = $item;
+                }
+            }
+        } else {
+            foreach ($this->items as $item) {
+                if ($this->getItemValue($item, $key) != $value) {
+                    $found = $item;
+                }
+            }
+        }
+        return $found;
+    }
+
+    /**
+     *  Return last item not matching any key of values
+     *
+     * @param string $key
+     * @param array $values
+     * @param bool $strict
+     * @return mixed|null
+     */
+    function lastNotIn(string $key, array $values, $strict = true){
+        $found = null;
+        foreach ($this->items as $item) {
+            if (!in_array($this->getItemValue($item, $key), $values, $strict)) {
+                $found = $item;
+            }
+        }
+        return $found;
+    }
+
+    /**
+     * Return last item matching callback
+     *
+     * @param Closure $callback
+     * @return bool|mixed
+     */
+    function lastCallback(Closure $callback)
+    {
+        $found = null;
+        foreach ($this->items as $key => $item) {
+            if ($callback($item, $key)) {
+                $found = $item;
+            }
+        }
+        return $found;
+    }
+
+    /**
+     * Return collection of items matching key value
      *
      * @param $key
      * @param $value
@@ -300,14 +450,33 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
      */
     function filterBy(string $key, $value, bool $strict = true)
     {
-        if(is_string($value)){
-            $values = [$value];
-        } else if(is_array($value)){
-            $values = $value;
+        $found = new self();
+        if($strict){
+            foreach ($this->items as $item) {
+                if ($this->getItemValue($item, $key) === $value) {
+                    $found->add($item);
+                }
+            }
         } else {
-            throw new \InvalidArgumentException('Invalid $value argument type : expected string or array');
+            foreach ($this->items as $item) {
+                if ($this->getItemValue($item, $key) == $value) {
+                    $found->add($item);
+                }
+            }
         }
+        return $found;
+    }
 
+    /**
+     * Return collection of items matching any of key values
+     *
+     * @param string $key
+     * @param array $values
+     * @param bool $strict
+     * @return Collection
+     */
+    function filterIn(string $key, array $values, bool $strict = true)
+    {
         $found = new self();
         foreach ($this->items as $item) {
             if (in_array($this->getItemValue($item, $key) ,$values, $strict)) {
@@ -318,8 +487,9 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
     }
 
 
+
     /**
-     * Return collection of items not matching key value(s)
+     * Return collection of items not matching key value
      *
      * @param $key
      * @param $value
@@ -327,14 +497,33 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
      * @return Collection
      */
     function filterNotBy($key, $value, bool $strict = true){
-        if(is_string($value)){
-            $values = [$value];
-        } else if(is_array($value)){
-            $values = $value;
+        $found = new self();
+        if($strict){
+            foreach ($this->items as $item) {
+                if ($this->getItemValue($item, $key) !== $value) {
+                    $found->add($item);
+                }
+            }
         } else {
-            throw new \InvalidArgumentException('Invalid $value argument type : expected string or array');
+            foreach ($this->items as $item) {
+                if ($this->getItemValue($item, $key) != $value) {
+                    $found->add($item);
+                }
+            }
         }
+        return $found;
+    }
 
+    /**
+     * Return collection of items not matching any of key values
+     *
+     * @param string $key
+     * @param array $values
+     * @param bool $strict
+     * @return Collection
+     */
+    function filterNotIn(string $key, array $values, bool $strict = true)
+    {
         $found = new self();
         foreach ($this->items as $item) {
             if (!in_array($this->getItemValue($item, $key) ,$values, $strict)) {
@@ -347,10 +536,10 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
     /**
      * Return collection of items matching callback
      *
-     * @param \Closure $callback
+     * @param Closure $callback
      * @return Collection
      */
-    function filterCallback(\Closure $callback)
+    function filterCallback(Closure $callback)
     {
         $found = new self();
         foreach ($this->items as $key => $item) {
@@ -381,10 +570,10 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
     }
 
     /**
-     * @param \Closure $call
+     * @param Closure $call
      * @return array
      */
-    function groupCallback(\Closure $call){
+    function groupCallback(Closure $call){
         $array = [];
         foreach ($this->items as $key => $item) {
             $real_label = $call($item, $key);
@@ -452,8 +641,8 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
     }
 
     protected function validateItem($item){
-        if(!is_array($item) && !is_a($item,\ArrayAccess::class)){
-            throw new \InvalidArgumentException('Invalid $item argument : expected array or instance of '.\ArrayAccess::class);
+        if(!is_array($item) && !is_a($item, ArrayAccess::class)){
+            throw new InvalidArgumentException('Invalid $item argument : expected array or instance of '. ArrayAccess::class);
         }
     }
 
