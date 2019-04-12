@@ -398,7 +398,7 @@ class CollectionTest extends TestCase
     /*
      * Test get values
      */
-    function testGetValues()
+    function testGetKeyValues()
     {
         $person_1 = ['name' => 'name-1', 'surname' => 'family-1', 'has_children' => true];
         $person_2 = ['name' => 'name-2', 'surname' => 'family-1', 'has_children' => false];
@@ -408,9 +408,23 @@ class CollectionTest extends TestCase
         $collection = new Collection(['person-1' => $person_1, 'person-2' => $person_2, 'person-3' => $person_3, 'person-4' => $person_4]);
         $this->assertEquals(['person-1' => 'family-1', 'person-2' => 'family-1', 'person-3' => 'family-2', 'person-4' => 'family-3'], $collection->getKeyValues('surname'));
         $this->assertEquals(['family-1', 'family-2', 'family-3'], $collection->getKeyValues('surname', true));
-        $this->assertEquals(['person-1' => 'FAMILY-1', 'person-2' => 'FAMILY-1', 'person-3' => 'FAMILY-2', 'person-4' => 'FAMILY-3'], $collection->getCallbackValues(function ($item) {
-            return strtoupper($item['surname']);
+    }
+
+    function testGetCallbackValues(){
+        $person_1 = ['name' => 'name-1', 'surname' => 'family-1', 'has_children' => true];
+        $person_2 = ['name' => 'name-2', 'surname' => 'family-1', 'has_children' => false];
+        $person_3 = ['name' => 'name-3', 'surname' => 'family-2', 'has_children' => 1];
+        $person_4 = ['name' => 'name-4', 'surname' => 'family-3', 'has_children' => true];
+
+        $collection = new Collection(['person-1' => $person_1, 'person-2' => $person_2, 'person-3' => $person_3, 'person-4' => $person_4]);
+
+        $this->assertEquals(['person-1' => 'family-1', 'person-2' => 'family-1', 'person-3' => 'family-2', 'person-4' => 'family-3'], $collection->getCallbackValues(function($item){
+            return $item['surname'];
         }));
+
+        $this->assertEquals(['family-1', 'family-2', 'family-3'], $collection->getCallbackValues(function($item){
+            return $item['surname'];
+        }, true));
     }
 
     /*

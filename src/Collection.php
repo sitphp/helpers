@@ -3,7 +3,6 @@
 namespace SitPHP\Helpers;
 
 use ArrayAccess;
-use Closure;
 use Countable;
 use InvalidArgumentException;
 use Iterator;
@@ -191,11 +190,11 @@ class Collection implements Iterator, ArrayAccess, Countable
     /**
      * Return array of items key values
      *
-     * @param $key
+     * @param string $key
      * @param bool $distinct
-     * @return array
+     * @return Collection
      */
-    function getKeyValues(string $key, $distinct = false)
+    function getKeyValues(string $key, bool $distinct = false)
     {
         $values = [];
         foreach ($this->items as $item_key => $item) {
@@ -207,10 +206,20 @@ class Collection implements Iterator, ArrayAccess, Countable
         return $values;
     }
 
-    function getCallbackValues(callable $call){
+    /**
+     * Return array of items mapp
+     *
+     * @param callable $call
+     * @param bool $distinct
+     * @return Collection
+     */
+    function getCallbackValues(callable $call, bool $distinct = false){
         $values = [];
         foreach ($this->items as $key => $item) {
-            $values[$key] = $call($item);
+            $values[$key] =  call_user_func_array($call,[$item, $key]);
+        }
+        if ($distinct) {
+            $values = array_values(array_unique($values));
         }
         return $values;
     }
@@ -318,13 +327,13 @@ class Collection implements Iterator, ArrayAccess, Countable
     /**
      * Return first item matching callback
      *
-     * @param Closure $callback
+     * @param callable $callback
      * @return bool|mixed
      */
-    function firstCallback(Closure $callback)
+    function firstCallback(callable $callback)
     {
         foreach ($this->items as $key => $item) {
-            if ($callback($item, $key)) {
+            if (call_user_func_array($callback, [$item, $key])) {
                 return $item;
             }
         }
@@ -426,14 +435,14 @@ class Collection implements Iterator, ArrayAccess, Countable
     /**
      * Return last item matching callback
      *
-     * @param Closure $callback
+     * @param callable $callback
      * @return bool|mixed
      */
-    function lastCallback(Closure $callback)
+    function lastCallback(callable $callback)
     {
         $found = null;
         foreach ($this->items as $key => $item) {
-            if ($callback($item, $key)) {
+            if (call_user_func_array($callback, [$item, $key])) {
                 $found = $item;
             }
         }
@@ -536,14 +545,14 @@ class Collection implements Iterator, ArrayAccess, Countable
     /**
      * Return collection of items matching callback
      *
-     * @param Closure $callback
+     * @param callable $callback
      * @return Collection
      */
-    function filterCallback(Closure $callback)
+    function filterCallback(callable $callback)
     {
         $found = new self();
         foreach ($this->items as $key => $item) {
-            if ($callback($item, $key)) {
+            if (call_user_func_array($callback, [$item, $key])) {
                 $found->add($item);
             }
         }
@@ -570,13 +579,13 @@ class Collection implements Iterator, ArrayAccess, Countable
     }
 
     /**
-     * @param Closure $call
+     * @param callable $call
      * @return array
      */
-    function groupCallback(Closure $call){
+    function groupCallback(callable $call){
         $array = [];
         foreach ($this->items as $key => $item) {
-            $real_label = $call($item, $key);
+            $real_label = call_user_func_array($call, [$item, $key]);
             if (!isset($array[$real_label])) {
                 $array[$real_label] = new self();
             }
