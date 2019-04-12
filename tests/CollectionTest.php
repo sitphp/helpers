@@ -405,10 +405,10 @@ class CollectionTest extends TestCase
         $person_3 = ['name' => 'name-3', 'surname' => 'family-2', 'has_children' => 1];
         $person_4 = ['name' => 'name-4', 'surname' => 'family-3', 'has_children' => true];
 
-        $collection = new Collection([$person_1, $person_2, $person_3, $person_4]);
-        $this->assertEquals(['family-1', 'family-1', 'family-2', 'family-3'], $collection->getKeyValues('surname'));
+        $collection = new Collection(['person-1' => $person_1, 'person-2' => $person_2, 'person-3' => $person_3, 'person-4' => $person_4]);
+        $this->assertEquals(['person-1' => 'family-1', 'person-2' => 'family-1', 'person-3' => 'family-2', 'person-4' => 'family-3'], $collection->getKeyValues('surname'));
         $this->assertEquals(['family-1', 'family-2', 'family-3'], $collection->getKeyValues('surname', true));
-        $this->assertEquals(['FAMILY-1', 'FAMILY-1', 'FAMILY-2', 'FAMILY-3'], $collection->getCallbackValues(function ($item) {
+        $this->assertEquals(['person-1' => 'FAMILY-1', 'person-2' => 'FAMILY-1', 'person-3' => 'FAMILY-2', 'person-4' => 'FAMILY-3'], $collection->getCallbackValues(function ($item) {
             return strtoupper($item['surname']);
         }));
     }

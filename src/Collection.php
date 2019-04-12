@@ -198,8 +198,8 @@ class Collection implements Iterator, ArrayAccess, Countable
     function getKeyValues(string $key, $distinct = false)
     {
         $values = [];
-        foreach ($this->items as $item) {
-            $values[] = $this->getItemValue($item, $key);
+        foreach ($this->items as $item_key => $item) {
+            $values[$item_key] = $this->getItemValue($item, $key);
         }
         if ($distinct) {
             $values = array_values(array_unique($values));
@@ -209,8 +209,8 @@ class Collection implements Iterator, ArrayAccess, Countable
 
     function getCallbackValues(callable $call){
         $values = [];
-        foreach ($this->items as $item) {
-            $values[] = $call($item);
+        foreach ($this->items as $key => $item) {
+            $values[$key] = $call($item);
         }
         return $values;
     }
