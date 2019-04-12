@@ -90,14 +90,14 @@ class CollectionTest extends \Doublit\TestCase
         $person_4 = ['name' => 'name-4', 'surname' => 'family-3', 'has_children' => true];
         $collection = new Collection([$person_1, $person_2, $person_3, $person_4]);
 
-        $filtered_on = $collection->filterOn('surname', 'family-1');
-        $filtered_in = $collection->filterIn('surname', ['family-1', 'family-2']);
+        $filtered_on = $collection->filterBy('surname', 'family-1');
+        $filtered_in = $collection->filterBy('surname', ['family-1', 'family-2']);
         $filtered_callback = $collection->filterCallback(function ($item){
             return $item['name'] === 'name-1' || $item['name'] === 'name-2';
         });
-        $filtered_on_strict = $collection->filterOn('has_children', true);
-        $filtered_on_not_strict = $collection->filterOn('has_children', true, false);
-        $filtered_in_not_strict = $collection->filterIn('has_children', [true], false);
+        $filtered_on_strict = $collection->filterBy('has_children', true);
+        $filtered_on_not_strict = $collection->filterBy('has_children', true, false);
+        $filtered_in_not_strict = $collection->filterBy('has_children', [true], false);
 
         $this->assertEquals([$person_1, $person_2], $filtered_on->toArray());
         $this->assertEquals([$person_1, $person_2, $person_3], $filtered_in->toArray());
@@ -117,11 +117,11 @@ class CollectionTest extends \Doublit\TestCase
         $person_4 = ['name' => 'name-4', 'surname' => 'family-3', 'has_children' => true];
         $collection = new Collection([$person_1, $person_2, $person_3, $person_4]);
 
-        $this->assertEquals($person_2, $collection->findOn('name', 'name-2'));
-        $this->assertEquals($person_2, $collection->findOn('has_children', true, false));
-        $this->assertEquals($person_3, $collection->findOn('has_children', true));
-        $this->assertNull($collection->findOn('has_children', 'undefined'));
-        $this->assertNull($collection->findOn('undefined', 'undefined'));
+        $this->assertEquals($person_2, $collection->findBy('name', 'name-2'));
+        $this->assertEquals($person_2, $collection->findBy('has_children', true, false));
+        $this->assertEquals($person_3, $collection->findBy('has_children', true));
+        $this->assertNull($collection->findBy('has_children', 'undefined'));
+        $this->assertNull($collection->findBy('undefined', 'undefined'));
     }
     function testFindCallback(){
         $person_1 = ['name' => 'name-1', 'surname' => 'family-1', 'has_children' => false];
@@ -217,10 +217,40 @@ class CollectionTest extends \Doublit\TestCase
         $person_4 = ['name' => 'name-4', 'surname' => 'family-3', 'has_children' => true];
 
         $collection = new Collection([$person_1, $person_2, $person_3, $person_4]);
-        $this->assertEquals(['family-1', 'family-1', 'family-2', 'family-3'] ,$collection->getValuesByKey('surname'));
-        $this->assertEquals(['family-1', 'family-2', 'family-3'] ,$collection->getValuesByKey('surname', true));
-        $this->assertEquals(['FAMILY-1', 'FAMILY-1', 'FAMILY-2', 'FAMILY-3'] ,$collection->getValuesByCallback(function ($item){
+        $this->assertEquals(['family-1', 'family-1', 'family-2', 'family-3'] ,$collection->getKeyValues('surname'));
+        $this->assertEquals(['family-1', 'family-2', 'family-3'] ,$collection->getKeyValues('surname', true));
+        $this->assertEquals(['FAMILY-1', 'FAMILY-1', 'FAMILY-2', 'FAMILY-3'] ,$collection->getCallbackValues(function ($item){
             return strtoupper($item['surname']);
         }));
+    }
+
+    /*
+     * Test magic
+     */
+    function testIsset(){
+        $collection = new Collection();
+        $collection->set('item', []);
+
+        $this->assertTrue(isset($collection['item']));
+        $this->assertFalse(isset($collection['undefined']));
+    }
+    function testUnset(){
+        $collection = new Collection();
+        $collection->set('item', []);
+
+        unset($collection['item']);
+        $this->assertNull($collection['item']);
+    }
+    function testSet(){
+        $collection = new Collection();
+        $collection['item'] = [];
+
+        $this->assertEquals([], $collection->get('item'));
+    }
+    function testGet(){
+        $collection = new Collection();
+        $collection->set('item', []);
+
+        $this->assertEquals([], $collection['item']);
     }
 }

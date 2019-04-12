@@ -152,11 +152,6 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
         $this->items[$key] = $item;
     }
 
-    function validateItem($item){
-        if(!is_array($item) && !is_a($item,\ArrayAccess::class)){
-            throw new \InvalidArgumentException('Invalid $item argument : expected array or instance of '.\ArrayAccess::class);
-        }
-    }
     /**
      * Return item
      *
@@ -194,7 +189,7 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
      * @param bool $distinct
      * @return array
      */
-    function getValuesByKey(string $key, $distinct = false)
+    function getKeyValues(string $key, $distinct = false)
     {
         $values = [];
         foreach ($this->items as $item) {
@@ -206,7 +201,7 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
         return $values;
     }
 
-    function getValuesByCallback(callable $call){
+    function getCallbackValues(callable $call){
         $values = [];
         foreach ($this->items as $item) {
             $values[] = $call($item);
@@ -224,7 +219,7 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
      */
     function hasKeyValue($key, $value, $strict = false)
     {
-        return $this->findOn($key, $value, $strict) ? true : false;
+        return $this->findBy($key, $value, $strict) ? true : false;
     }
 
     /**
@@ -235,7 +230,7 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
      * @param bool $strict
      * @return bool|mixed
      */
-    function findOn(string $key, $value, $strict = true)
+    function findBy(string $key, $value, $strict = true)
     {
         if ($strict) {
             foreach ($this->items as $item) {
@@ -246,6 +241,32 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
         } else {
             foreach ($this->items as $item) {
                 if ($this->getItemValue($item, $key) == $value) {
+                    return $item;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Return first item not matching key value
+     *
+     * @param string $key
+     * @param $value
+     * @param bool $strict
+     * @return bool|mixed
+     */
+    function findNotBy(string $key, $value, $strict = true)
+    {
+        if ($strict) {
+            foreach ($this->items as $item) {
+                if ($this->getItemValue($item, $key) !== $value) {
+                    return $item;
+                }
+            }
+        } else {
+            foreach ($this->items as $item) {
+                if ($this->getItemValue($item, $key) != $value) {
                     return $item;
                 }
             }
@@ -256,10 +277,10 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
     /**
      * Return first item matching callback
      *
-     * @param callable $callback
+     * @param \Closure $callback
      * @return bool|mixed
      */
-    function findCallback(callable $callback)
+    function findCallback(\Closure $callback)
     {
         foreach ($this->items as $key => $item) {
             if ($callback($item, $key)) {
@@ -270,42 +291,23 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
     }
 
     /**
-     * Return collection of items matching key value
+     * Return collection of items matching key value(s)
      *
      * @param $key
      * @param $value
      * @param bool $strict
      * @return Collection
      */
-    function filterOn(string $key, $value, bool $strict = true)
+    function filterBy(string $key, $value, bool $strict = true)
     {
-        $found = new self();
-        if ($strict) {
-            foreach ($this->items as $item) {
-                if ($this->getItemValue($item, $key) === $value) {
-                    $found->add($item);
-                }
-            }
+        if(is_string($value)){
+            $values = [$value];
+        } else if(is_array($value)){
+            $values = $value;
         } else {
-            foreach ($this->items as $item) {
-                if ($this->getItemValue($item, $key) == $value) {
-                    $found->add($item);
-                }
-            }
+            throw new \InvalidArgumentException('Invalid $value argument type : expected string or array');
         }
-        return $found;
-    }
 
-    /**
-     * Return collection of items matching key values
-     *
-     * @param $key
-     * @param array $values
-     * @param bool $strict
-     * @return Collection
-     */
-    function filterIn($key, array $values, bool $strict = true)
-    {
         $found = new self();
         foreach ($this->items as $item) {
             if (in_array($this->getItemValue($item, $key) ,$values, $strict)) {
@@ -315,13 +317,40 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
         return $found;
     }
 
+
+    /**
+     * Return collection of items not matching key value(s)
+     *
+     * @param $key
+     * @param $value
+     * @param bool $strict
+     * @return Collection
+     */
+    function filterNotBy($key, $value, bool $strict = true){
+        if(is_string($value)){
+            $values = [$value];
+        } else if(is_array($value)){
+            $values = $value;
+        } else {
+            throw new \InvalidArgumentException('Invalid $value argument type : expected string or array');
+        }
+
+        $found = new self();
+        foreach ($this->items as $item) {
+            if (!in_array($this->getItemValue($item, $key) ,$values, $strict)) {
+                $found->add($item);
+            }
+        }
+        return $found;
+    }
+
     /**
      * Return collection of items matching callback
      *
-     * @param callable $callback
+     * @param \Closure $callback
      * @return Collection
      */
-    function filterCallback(callable $callback)
+    function filterCallback(\Closure $callback)
     {
         $found = new self();
         foreach ($this->items as $key => $item) {
@@ -352,10 +381,10 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
     }
 
     /**
-     * @param callable $call
+     * @param \Closure $call
      * @return array
      */
-    function groupCallback(callable $call){
+    function groupCallback(\Closure $call){
         $array = [];
         foreach ($this->items as $key => $item) {
             $real_label = $call($item, $key);
@@ -420,6 +449,12 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
             $item = $item[$key_part];
         }
         return $value;
+    }
+
+    protected function validateItem($item){
+        if(!is_array($item) && !is_a($item,\ArrayAccess::class)){
+            throw new \InvalidArgumentException('Invalid $item argument : expected array or instance of '.\ArrayAccess::class);
+        }
     }
 
 }
