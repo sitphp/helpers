@@ -602,20 +602,23 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @return Collection
      */
     function sortBy(string $key, bool $reverse = false){
-        uasort($this->items, function($a, $b) use($key, $reverse){
-            if(!isset($a[$key]) || !isset($b[$key])){
+        $items = $this->items;
+        uasort($items, function($a, $b) use($key, $reverse){
+            if ($a[$key] === $b[$key]) {
                 return 0;
             }
-            if ($a[$key] == $b[$key]) {
-                return 0;
+            if($a[$key] === null){
+                return 1;
+            }
+            if($b[$key] === null){
+                return -1;
             }
             if(!$reverse){
                 return ($a[$key] < $b[$key]) ? -1 : 1;
-            } else {
-                return ($a[$key] > $b[$key]) ? -1 : 1;
             }
+            return ($a[$key] > $b[$key]) ? -1 : 1;
         });
-        return $this;
+        return new self($items);
     }
 
     /**
@@ -625,8 +628,9 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @return Collection
      */
     function sortCallback(callable $callback){
-        uasort($this->items, $callback);
-        return $this;
+        $items = $this->items;
+        uasort($items, $callback);
+        return new self($items);
     }
 
     /**

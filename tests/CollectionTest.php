@@ -388,10 +388,34 @@ class CollectionTest extends TestCase
         $collection = new Collection(['person3' => $person_3, 'person1' => $person_1, 'person4' => $person_4, 'person2' => $person_2]);
 
         $expected = ['person1' => $person_1, 'person2' => $person_2, 'person3' => $person_3, 'person4' => $person_4];
+        $this->assertInstanceOf(Collection::class, $collection->sortBy('name'));
         $this->assertEquals($expected, $collection->sortBy('name')->toArray());
+    }
+
+    function testSortCallback(){
+        $person_1 = ['name' => 'name-1', 'surname' => 'family-1', 'has_children' => true];
+        $person_2 = ['name' => 'name-2', 'surname' => 'family-1', 'has_children' => false];
+        $person_3 = ['name' => 'name-3', 'surname' => 'family-2', 'has_children' => 1];
+        $person_4 = ['name' => 'name-4', 'surname' => 'family-3', 'has_children' => true];
+
+        $collection = new Collection(['person3' => $person_3, 'person1' => $person_1, 'person4' => $person_4, 'person2' => $person_2]);
+
+        $expected = ['person1' => $person_1, 'person2' => $person_2, 'person3' => $person_3, 'person4' => $person_4];
+
         $this->assertEquals($expected, $collection->sortCallback(function ($a, $b) {
             return $a['surname'] > $b['surname'];
         })->toArray());
+    }
+
+    function testSortWithNull(){
+        $priority1 = ['name' => 'name-4'];
+        $priority2 = ['name' => null];
+        $priority3 = ['name' => null];
+        $priority4 = ['name' => 'name-1'];
+
+        $collection = new Collection([$priority1, $priority2, $priority3, $priority4]);
+
+        $this->assertEquals([3 => $priority4, 0 =>$priority1, 1 => $priority2, 2 => $priority3], $collection->sortBy('name')->toArray());
     }
 
 
