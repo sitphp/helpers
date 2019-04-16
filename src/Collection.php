@@ -11,7 +11,6 @@ class Collection implements Iterator, ArrayAccess, Countable
 {
 
     protected $items = [];
-    protected $position;
 
 
     /**
@@ -72,7 +71,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     public function rewind()
     {
-        $this->position = 0;
+        reset($this->items);
     }
 
     /**
@@ -82,7 +81,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     public function current()
     {
-        return $this->get($this->position);
+        return current($this->items);
     }
 
     /**
@@ -92,7 +91,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     public function key()
     {
-        return $this->position;
+        return key($this->items);
     }
 
     /**
@@ -100,7 +99,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     public function next()
     {
-        ++$this->position;
+        next($this->items);
     }
 
     /**
@@ -110,7 +109,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     public function valid()
     {
-        return $this->get($this->position) !== null;
+        return key($this->items) !== null;
     }
 
     /**

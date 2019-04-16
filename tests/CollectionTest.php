@@ -64,14 +64,15 @@ class CollectionTest extends TestCase
         $collection = new Collection();
         $array_1 = ['item_1', 'item_2'];
         $array_2 = ['item_3', 'item_4'];
-        $collection->add($array_1);
-        $collection->add($array_2);
-
+        $collection->set(1, $array_1);
+        $collection->set(0, $array_2);
+        
         $test = [];
         foreach ($collection as $key => $item) {
+
             $test[$key] = $item;
         }
-        $this->assertEquals([$array_1, $array_2], $test);
+        $this->assertEquals([1 => $array_1, 0 =>$array_2], $test);
     }
 
     function testCollectionShouldBeCountable()
