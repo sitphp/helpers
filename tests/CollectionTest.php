@@ -20,6 +20,82 @@ class CollectionTest extends TestCase
         $this->assertEquals($array, $collection->get('name'));
     }
 
+    function testHas(){
+        $collection = new Collection();
+        $collection->set('name', ['item_1', 'item_2']);
+
+        $this->assertTrue($collection->has('name'));
+        $this->assertFalse($collection->has('undefined'));
+    }
+
+    function testPrepend(){
+        $collection = new Collection();
+        $collection->add(['item_1', 'item_2']);
+        $collection->prepend(['item_3', 'item_4']);
+
+        $this->assertEquals(['item_3', 'item_4'], $collection->get(0));
+    }
+
+    function testGetIn(){
+        $collection = new Collection();
+        $array = ['item_1', 'item_2'];
+        $collection->set('name1', $array);
+        $collection->set('name2', $array);
+        $collection->set('name3', $array);
+
+        $this->assertEquals(new Collection(['name1' => $array, 'name3' => $array]), $collection->getIn(['name1', 'name3']));
+    }
+
+    function testGetNotIn(){
+        $collection = new Collection();
+        $array = ['item_1', 'item_2'];
+        $collection->set('name1', $array);
+        $collection->set('name2', $array);
+        $collection->set('name3', $array);
+
+        $this->assertEquals(new Collection(['name1' => $array, 'name3' => $array]), $collection->getNotIn(['name2']));
+    }
+
+    function testShift(){
+        $collection = new Collection();
+        $collection->set('name1', ['item_1', 'item_2']);
+        $collection->set('name2', ['item_3', 'item_4']);
+        $collection->pop();
+        $this->assertTrue($collection->has('name1'));
+        $this->assertFalse($collection->has('name2'));
+    }
+    function testPop(){
+        $collection = new Collection();
+        $collection->set('name1', ['item_1', 'item_2']);
+        $collection->set('name2', ['item_3', 'item_4']);
+        $collection->shift();
+        $this->assertFalse($collection->has('name1'));
+        $this->assertTrue($collection->has('name2'));
+    }
+
+    function testRemove(){
+        $collection = new Collection();
+        $collection->set('name1', ['item_1', 'item_2']);
+        $collection->set('name2', ['item_3', 'item_4']);
+        $collection->remove('name2');
+        $this->assertTrue($collection->has('name1'));
+        $this->assertFalse($collection->has('name2'));
+    }
+
+    function testRemoveCallback(){
+        $collection = new Collection();
+        $collection->set('name1', ['item_1', 'item_2']);
+        $collection->set('name2', ['item_3', 'item_4']);
+        $collection->set('name3', ['item_5', 'item_6']);
+        $collection->removeCallback(function($item, $name){
+            return $name == 'name2' || $item[0] == 'item_5';
+
+        });
+        $this->assertTrue($collection->has('name1'));
+        $this->assertFalse($collection->has('name2'));
+        $this->assertFalse($collection->has('name3'));
+    }
+
     function testAddWithInvalidItemShouldFail()
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -94,6 +170,16 @@ class CollectionTest extends TestCase
 
         $this->assertTrue($collection->hasKeyValue(0, 'item_1'));
         $this->assertFalse($collection->hasKeyValue(0, 'item_2'));
+    }
+
+    function testGetNames(){
+        $collection = new Collection();
+        $array_1 = ['item_1', 'item_2'];
+        $array_2 = ['item_3', 'item_4'];
+        $collection->set('name1', $array_1);
+        $collection->set('name2', $array_2);
+
+        $this->assertEquals(['name1', 'name2'], $collection->getNames());
     }
 
     /*
@@ -419,6 +505,26 @@ class CollectionTest extends TestCase
         $this->assertEquals([3 => $priority4, 0 =>$priority1, 1 => $priority2, 2 => $priority3], $collection->sortBy('name')->toArray());
     }
 
+    function testShuffle(){
+        $collection = new Collection();
+        $array = ['item_1','item_2'];
+        $collection->add($array);
+        $collection->add($array);
+        $collection->add($array);
+
+        $this->assertInstanceOf(Collection::class, $collection->shuffle());
+    }
+
+    function testReverse(){
+        $collection = new Collection();
+        $array = ['item_1','item_2'];
+        $collection->add($array);
+        $collection->add($array);
+        $collection->add($array);
+
+        $this->assertEquals(new Collection([2 => $array,1=> $array,0 => $array]), $collection->reverse());
+    }
+
 
     /*
      * Test get values
@@ -433,6 +539,13 @@ class CollectionTest extends TestCase
         $collection = new Collection(['person-1' => $person_1, 'person-2' => $person_2, 'person-3' => $person_3, 'person-4' => $person_4]);
         $this->assertEquals(['person-1' => 'family-1', 'person-2' => 'family-1', 'person-3' => 'family-2', 'person-4' => 'family-3'], $collection->getKeyValues('surname'));
         $this->assertEquals(['family-1', 'family-2', 'family-3'], $collection->getKeyValues('surname', true));
+    }
+
+    function testGetKeyValuesDeep()
+    {
+        $array_deep = [['key11' => ['key21' => 'value21']], ['key11' => ['key21' => 'value22']]];
+        $collection = new Collection($array_deep);
+        $this->assertEquals(['value21', 'value22'], $collection->getKeyValues('key11.key21'));
     }
 
     function testGetCallbackValues(){
@@ -451,6 +564,110 @@ class CollectionTest extends TestCase
             return $item['surname'];
         }, true));
     }
+
+    function testMin(){
+        $collection = new Collection();
+        $collection->add(['value' => 0]);
+        $collection->add(['value' => 6]);
+        $collection->add(['value' => 9]);
+
+        $this->assertEquals(0, $collection->min('value'));
+        $this->assertNull($collection->min('undefined'));
+        $this->assertNull((new Collection())->min('undefined'));
+    }
+
+    function testMax(){
+        $collection = new Collection();
+        $collection->add(['value' => 0]);
+        $collection->add(['value' => 6]);
+        $collection->add(['value' => 9]);
+
+        $this->assertEquals(9, $collection->max('value'));
+        $this->assertNull($collection->max('undefined'));
+        $this->assertNull((new Collection())->max('undefined'));
+    }
+
+    function testAverage(){
+        $collection = new Collection();
+        $collection->add(['value' => 0]);
+        $collection->add(['value' => 6]);
+        $collection->add(['value' => 9]);
+
+        $this->assertEquals(5, $collection->average('value'));
+        $this->assertNull($collection->average('undefined'));
+        $this->assertNull((new Collection())->average('undefined'));
+    }
+
+    function testReduce(){
+        $collection = new Collection();
+        $collection->add(['value' => 0]);
+        $collection->add(['value' => 6]);
+        $collection->add(['value' => 9]);
+
+        $this->assertEquals(15, $collection->reduce(function($carry, $item){
+            $carry += $item['value'];
+            return $carry;
+        }));
+    }
+
+    /*
+     * Test sub collection
+     */
+    function testRandom(){
+        $collection = new Collection();
+        $array = ['item_1','item_2'];
+        $collection->add($array);
+        $collection->add($array);
+        $collection->add($array);
+
+        $this->assertIsArray($collection->random(1));
+        $this->assertInstanceOf(Collection::class,$collection->random(2));
+
+    }
+    function testChunk(){
+        $collection = new Collection();
+        $array = ['item_1','item_2'];
+        $collection->add($array);
+        $collection->add($array);
+        $collection->add($array);
+
+        $this->assertEquals([new Collection([0 => $array, 1=> $array]),new Collection([2=> $array])], $collection->chunk(2));
+    }
+
+    function testSplice(){
+        $collection = new Collection();
+        $array = ['item_1','item_2'];
+        $collection->add($array);
+        $collection->add($array);
+        $collection->add($array);
+
+        $this->assertEquals(new Collection([$array]), $collection->splice(1, 2));
+    }
+    function testPaginate(){
+        $collection = new Collection();
+        $array = ['item_1','item_2'];
+        $collection->add($array);
+        $collection->add($array);
+        $collection->add($array);
+
+        $this->assertEquals(new Collection([0 => $array, 1=> $array]), $collection->paginate(1, 2));
+        $this->assertEquals(new Collection([2 => $array]), $collection->paginate(2, 2));
+    }
+    function testMap(){
+        $collection = new Collection();
+        $array = ['item_1','item_2'];
+        $array_sub = ['ITEM_1','item_2'];
+        $collection->add($array);
+        $collection->add($array);
+        $collection->add($array);
+
+        $this->assertEquals(new Collection([$array_sub, $array_sub ,$array_sub]),
+            $collection->map(function($item){
+                $item[0] = strtoupper($item[0]);
+            return $item;
+        }));
+    }
+
 
     /*
      * Test magic

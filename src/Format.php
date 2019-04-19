@@ -18,16 +18,16 @@ class Format
     {
 
         if($microtime >= 3600 * 24 * 365) {
-            $unit = 'years';
-            $time = round($microtime / 3600, $round);
+            $unit = 'y';
+            $time = round($microtime / (3600 * 24 * 365), $round);
         }
         else if($microtime >= 3600 * 24) {
-            $unit = 'days';
-            $time = round($microtime / 3600, $round);
+            $unit = 'd';
+            $time = round($microtime / (3600 * 24), $round);
         }
         else if($microtime >= 3600){
-            $unit = 'hrs';
             $time = round($microtime / 3600, $round);
+            $unit = 'h';
         }
         else if($microtime >= 60){
             $unit = 'min';

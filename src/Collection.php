@@ -124,49 +124,167 @@ class Collection implements Iterator, ArrayAccess, Countable
         }
     }
 
+    /*
+     * Get/Set methods
+     */
+
     /**
-     * Add item
+     * Add item at the end of the collection
      *
      * @param $item
+     * @return Collection
      */
     function add($item)
     {
         $this->validateItem($item);
-
         $this->items[] = $item;
+        return $this;
     }
 
     /**
-     * Set item with custom key
+     * Add item at the beginning of the collection
      *
-     * @param string $key
      * @param $item
+     * @return Collection
      */
-    function set($key, $item)
+    function prepend($item){
+        $this->validateItem($item);
+        array_unshift($this->items, $item);
+        return $this;
+    }
+
+    /**
+     * Set item with custom name
+     *
+     * @param string $name
+     * @param $item
+     * @return Collection|void
+     */
+    function set($name, $item)
     {
         $this->validateItem($item);
 
-        if(!isset($key)){
+        if(!isset($name)){
             $this->add($item);
             return;
         }
-        if(!is_string($key) && !is_int($key)){
+        if(!is_string($name) && !is_int($name)){
             throw new InvalidArgumentException('Invalid $key item argument : expected string, int or null');
         }
-        $this->items[$key] = $item;
+        $this->items[$name] = $item;
+        return $this;
     }
 
     /**
-     * Return item
+     * Return item matching given name
      *
-     * @param string $key
+     * @param string $name
      * @return mixed|null
      */
-    function get(string $key)
+    function get(string $name)
     {
-        return $this->getItemValue($this->items, $key);
+        return $this->getItemValue($this->items, $name);
     }
 
+    /**
+     * Return collection of items matching given names
+     *
+     * @param array $names
+     * @return Collection
+     */
+    function getIn(array $names){
+        $items = new static();
+        foreach ($names as $key){
+            $items[$key] = $this->getItemValue($this->items, $key);
+        }
+        return $items;
+    }
+
+    /**
+     * Return array of names of items
+     *
+     * @return array
+     */
+    function getNames(){
+        return array_keys($this->items);
+    }
+
+    /**
+     * Return collection of items not matching given names
+     *
+     * @param array $names
+     * @return Collection
+     */
+    function getNotIn(array $names){
+        $items = new static();
+        foreach ($this->items as $key => $item) {
+            if(!in_array($key, $names, true)){
+                $items[$key] = $this->getItemValue($this->items, $key);
+            }
+        }
+        return $items;
+    }
+
+
+    /**
+     * Shift an element off the beginning of the collection
+     *
+     * @return $this
+     * @see https://www.php.net/manual/function.array-shift.php
+     */
+    function shift(){
+        array_shift($this->items);
+        return $this;
+    }
+
+    /**
+     * Pop an element off the end of the collection
+     *
+     * @return $this
+     * @see https://www.php.net/manual/function.array-pop.php
+     */
+    function pop(){
+        array_pop($this->items);
+        return $this;
+    }
+
+    /**
+     * Remove item(s) with give name(s)
+     *
+     * @param $names
+     * @return Collection
+     */
+    function remove($names){
+        foreach ((array) $names as $name){
+            unset($this->items[$name]);
+        }
+        return $this;
+    }
+
+    /**
+     * Remove items when callback returns true
+     *
+     * @param callable $callback
+     * @return Collection
+     */
+    function removeCallback(callable $callback){
+        foreach($this->items as $name => $item){
+            if(call_user_func_array($callback, [$item, $name])){
+                unset($this->items[$name]);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Check if item with name exists
+     *
+     * @param string $name
+     * @return bool
+     */
+    function has(string $name){
+        return isset($this->items[$name]);
+    }
 
     /**
      * Return all items
@@ -177,21 +295,16 @@ class Collection implements Iterator, ArrayAccess, Countable
         return $this->items;
     }
 
-    /**
-     * Remove item
-     *
-     * @param $name
-     */
-    function remove($name){
-        unset($this->items[$name]);
-    }
 
+    /*
+     * Key values methods
+     */
     /**
-     * Return array of items key values
+     * Return array of values of the given key
      *
      * @param string $key
      * @param bool $distinct
-     * @return Collection
+     * @return array
      */
     function getKeyValues(string $key, bool $distinct = false)
     {
@@ -206,7 +319,7 @@ class Collection implements Iterator, ArrayAccess, Countable
     }
 
     /**
-     * Return array of items mapp
+     * Return array of values returned by callback
      *
      * @param callable $call
      * @param bool $distinct
@@ -231,10 +344,148 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @param bool $strict
      * @return bool
      */
-    function hasKeyValue($key, $value, $strict = false)
+    function hasKeyValue(string $key, $value, $strict = false)
     {
         return $this->firstWith($key, $value, $strict) ? true : false;
     }
+
+
+    /**
+     * Return min value of given key
+     *
+     * @param string $key
+     * @return mixed|null
+     */
+    function min(string $key){
+        if(empty($this->items)){
+            return null;
+        }
+        return min($this->getKeyValues($key));
+    }
+
+    /**
+     * Return min value of given key
+     *
+     * @param string $key
+     * @return mixed
+     */
+    function max(string $key){
+        if(empty($this->items)){
+            return null;
+        }
+        return max($this->getKeyValues($key));
+    }
+
+    /**
+     * Return §rage of key values
+     *
+     * @param string $key
+     * @return mixed
+     */
+    function average(string $key){
+        if(empty($this->items)){
+            return null;
+        }
+        $key_values = array_filter($this->getKeyValues($key), function ($item){
+            return $item !== null;
+        });
+
+        if(empty($key_values)){
+            return null;
+        }
+        return array_sum($key_values)/$this->count();
+
+    }
+
+    /*
+     * Collection methods
+     */
+
+    /**
+     * Return one or more random items
+     *
+     * @param int $num
+     * @return mixed
+     */
+    function random(int $num){
+        $rand_keys = array_rand($this->items, $num);
+        if($num === 1){
+            return $this->items[$rand_keys];
+        }
+        $rand_items = new static();
+        foreach($rand_keys as $rand_key){
+            $rand_items[$rand_key] = $this->items[$rand_key];
+        }
+        return $rand_items;
+    }
+
+
+    /**
+     * Return array of collections of given size
+     *
+     * @param int $size
+     * @param bool $preserve_keys
+     * @return array
+     */
+    function chunk(int $size , bool $preserve_keys = true){
+        $chunks = [];
+        foreach($array_chunks = array_chunk($this->items, $size, $preserve_keys) as $array_chunk){
+            $chunks[] = new static($array_chunk);
+        }
+        return $chunks;
+    }
+
+    /**
+     * Remove a portion of the array
+     *
+     * @param $offset
+     * @param int|null $length
+     * @return Collection
+     */
+    function splice($offset, int $length = null){
+        $items = $this->items;
+        array_splice($items,$offset, $length);
+        return new static($items);
+    }
+
+    /**
+     *  Return a collection applying the callback to the items
+     *
+     * @param callable $callback
+     * @return Collection
+     * @see https://www.php.net/manual/function.array-map.php
+     */
+    function map(callable $callback){
+        return new static(array_map($callback, $this->items));
+    }
+
+    /**
+     * Return a collection of items on given page
+     *
+     * @param int $page
+     * @param int $items_per_page
+     * @return $this|null
+     */
+    function paginate(int $page, int $items_per_page){
+        $chunks = $this->chunk($items_per_page);
+        return $chunks[$page - 1] ?? null;
+    }
+
+    /**
+     * Iteratively reduce items to single value using a callback function
+     *
+     * @param string $key
+     * @param callable $callback
+     * @return mixed
+     * @see https://www.php.net/manual/function.array-reduce.php
+     */
+    function reduce(callable $callback){
+        return array_reduce($this->items, $callback);
+    }
+
+    /*
+     * First methods
+     */
 
     /**
      * Return first item matching key value
@@ -339,6 +590,9 @@ class Collection implements Iterator, ArrayAccess, Countable
         return null;
     }
 
+    /*
+     * Last methods
+     */
 
     /**
      * Return last item matching key value
@@ -448,6 +702,10 @@ class Collection implements Iterator, ArrayAccess, Countable
         return $found;
     }
 
+    /*
+     * Filter methods
+     */
+
     /**
      * Return collection of items matching key value
      *
@@ -458,7 +716,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     function filterBy(string $key, $value, bool $strict = true)
     {
-        $found = new self();
+        $found = new static();
         if($strict){
             foreach ($this->items as $item) {
                 if ($this->getItemValue($item, $key) === $value) {
@@ -476,27 +734,6 @@ class Collection implements Iterator, ArrayAccess, Countable
     }
 
     /**
-     * Return collection of items matching any of key values
-     *
-     * @param string $key
-     * @param array $values
-     * @param bool $strict
-     * @return Collection
-     */
-    function filterIn(string $key, array $values, bool $strict = true)
-    {
-        $found = new self();
-        foreach ($this->items as $item) {
-            if (in_array($this->getItemValue($item, $key) ,$values, $strict)) {
-                $found->add($item);
-            }
-        }
-        return $found;
-    }
-
-
-
-    /**
      * Return collection of items not matching key value
      *
      * @param $key
@@ -505,7 +742,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @return Collection
      */
     function filterNotBy($key, $value, bool $strict = true){
-        $found = new self();
+        $found = new static();
         if($strict){
             foreach ($this->items as $item) {
                 if ($this->getItemValue($item, $key) !== $value) {
@@ -523,6 +760,26 @@ class Collection implements Iterator, ArrayAccess, Countable
     }
 
     /**
+     * Return collection of items matching any of key values
+     *
+     * @param string $key
+     * @param array $values
+     * @param bool $strict
+     * @return Collection
+     */
+    function filterIn(string $key, array $values, bool $strict = true)
+    {
+        $found = new static();
+        foreach ($this->items as $item) {
+            if (in_array($this->getItemValue($item, $key) ,$values, $strict)) {
+                $found->add($item);
+            }
+        }
+        return $found;
+    }
+
+
+    /**
      * Return collection of items not matching any of key values
      *
      * @param string $key
@@ -532,7 +789,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     function filterNotIn(string $key, array $values, bool $strict = true)
     {
-        $found = new self();
+        $found = new static();
         foreach ($this->items as $item) {
             if (!in_array($this->getItemValue($item, $key) ,$values, $strict)) {
                 $found->add($item);
@@ -549,7 +806,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     function filterCallback(callable $callback)
     {
-        $found = new self();
+        $found = new static();
         foreach ($this->items as $key => $item) {
             if (call_user_func_array($callback, [$item, $key])) {
                 $found->add($item);
@@ -558,6 +815,9 @@ class Collection implements Iterator, ArrayAccess, Countable
         return $found;
     }
 
+    /*
+     * Group methods
+     */
 
     /**
      * Return
@@ -570,7 +830,7 @@ class Collection implements Iterator, ArrayAccess, Countable
         $array = [];
         foreach ($this->items as $item) {
             if (!isset($array[$this->getItemValue($item, $key)])) {
-                $array[$this->getItemValue($item, $key)] = new self();
+                $array[$this->getItemValue($item, $key)] = new static();
             }
             $array[$this->getItemValue($item, $key)]->add($item);
         }
@@ -586,12 +846,16 @@ class Collection implements Iterator, ArrayAccess, Countable
         foreach ($this->items as $key => $item) {
             $real_label = call_user_func_array($call, [$item, $key]);
             if (!isset($array[$real_label])) {
-                $array[$real_label] = new self();
+                $array[$real_label] = new static();
             }
             $array[$real_label]->add($item);
         }
         return $array;
     }
+
+    /*
+     * Sort methods
+     */
 
     /**
      * Sort collection by key
@@ -617,7 +881,7 @@ class Collection implements Iterator, ArrayAccess, Countable
             }
             return ($a[$key] > $b[$key]) ? -1 : 1;
         });
-        return new self($items);
+        return new static($items);
     }
 
     /**
@@ -629,8 +893,30 @@ class Collection implements Iterator, ArrayAccess, Countable
     function sortCallback(callable $callback){
         $items = $this->items;
         uasort($items, $callback);
-        return new self($items);
+        return new static($items);
     }
+
+    /**
+     * Reverse the order of collection items
+     *
+     * @param bool $preserve_keys
+     * @return Collection
+     */
+    function reverse(bool $preserve_keys = true){
+        return new static(array_reverse($this->items, $preserve_keys));
+    }
+
+    /**
+     * Shuffle the collection
+     *
+     * @return Collection
+     */
+    function shuffle(){
+        $items = $this->items;
+        shuffle($items);
+        return new static($items);
+    }
+
 
     /**
      * Return item value

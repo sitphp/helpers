@@ -10,6 +10,8 @@ use SitPHP\Helpers\Format;
 class FormatTest extends TestCase
 {
     function testReadableTime(){
+        $this->assertEquals( "1 y",Format::readableTime(3600*24*365, 5, '%time% %unit%'));
+        $this->assertEquals( "1 d",Format::readableTime(3600*24, 5, '%time% %unit%'));
         $this->assertEquals( "1.00278 h",Format::readableTime(3610, 5, '%time% %unit%'));
         $this->assertEquals( "1.5 min",Format::readableTime(90, 5, '%time% %unit%'));
         $this->assertEquals( "1 h",Format::readableTime(3600, 5, '%time% %unit%'));
