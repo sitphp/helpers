@@ -117,8 +117,11 @@ class Collection implements Iterator, ArrayAccess, Countable
      *
      * @param array $items
      */
-    function __construct(array $items = [])
+    function __construct(array $items = null)
     {
+        if($items === null){
+            return;
+        }
         foreach ($items as $key => $value){
             $this->set($key, $value);
         }
@@ -193,7 +196,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @return Collection
      */
     function getIn(array $names){
-        $items = new static();
+        $items = $this->makeSibling();
         foreach ($names as $key){
             $items[$key] = $this->getItemValue($this->items, $key);
         }
@@ -216,7 +219,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @return Collection
      */
     function getNotIn(array $names){
-        $items = new static();
+        $items = $this->makeSibling();
         foreach ($this->items as $key => $item) {
             if(!in_array($key, $names, true)){
                 $items[$key] = $this->getItemValue($this->items, $key);
@@ -412,7 +415,7 @@ class Collection implements Iterator, ArrayAccess, Countable
         if($num === 1){
             return $this->items[$rand_keys];
         }
-        $rand_items = new static();
+        $rand_items = $this->makeSibling();
         foreach($rand_keys as $rand_key){
             $rand_items[$rand_key] = $this->items[$rand_key];
         }
@@ -430,7 +433,7 @@ class Collection implements Iterator, ArrayAccess, Countable
     function chunk(int $size , bool $preserve_keys = true){
         $chunks = [];
         foreach($array_chunks = array_chunk($this->items, $size, $preserve_keys) as $array_chunk){
-            $chunks[] = new static($array_chunk);
+            $chunks[] = $this->makeSibling($array_chunk);
         }
         return $chunks;
     }
@@ -445,7 +448,7 @@ class Collection implements Iterator, ArrayAccess, Countable
     function splice($offset, int $length = null){
         $items = $this->items;
         array_splice($items,$offset, $length);
-        return new static($items);
+        return $this->makeSibling($items);
     }
 
     /**
@@ -456,7 +459,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @see https://www.php.net/manual/function.array-map.php
      */
     function map(callable $callback){
-        return new static(array_map($callback, $this->items));
+        return $this->makeSibling(array_map($callback, $this->items));
     }
 
     /**
@@ -716,7 +719,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     function filterBy(string $key, $value, bool $strict = true)
     {
-        $found = new static();
+        $found = $this->makeSibling();
         if($strict){
             foreach ($this->items as $item) {
                 if ($this->getItemValue($item, $key) === $value) {
@@ -742,7 +745,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @return Collection
      */
     function filterNotBy($key, $value, bool $strict = true){
-        $found = new static();
+        $found = $this->makeSibling();
         if($strict){
             foreach ($this->items as $item) {
                 if ($this->getItemValue($item, $key) !== $value) {
@@ -769,7 +772,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     function filterIn(string $key, array $values, bool $strict = true)
     {
-        $found = new static();
+        $found = $this->makeSibling();
         foreach ($this->items as $item) {
             if (in_array($this->getItemValue($item, $key) ,$values, $strict)) {
                 $found->add($item);
@@ -789,7 +792,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     function filterNotIn(string $key, array $values, bool $strict = true)
     {
-        $found = new static();
+        $found = $this->makeSibling();
         foreach ($this->items as $item) {
             if (!in_array($this->getItemValue($item, $key) ,$values, $strict)) {
                 $found->add($item);
@@ -806,7 +809,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     function filterCallback(callable $callback)
     {
-        $found = new static();
+        $found = $this->makeSibling();
         foreach ($this->items as $key => $item) {
             if (call_user_func_array($callback, [$item, $key])) {
                 $found->add($item);
@@ -830,7 +833,7 @@ class Collection implements Iterator, ArrayAccess, Countable
         $array = [];
         foreach ($this->items as $item) {
             if (!isset($array[$this->getItemValue($item, $key)])) {
-                $array[$this->getItemValue($item, $key)] = new static();
+                $array[$this->getItemValue($item, $key)] = $this->makeSibling();
             }
             $array[$this->getItemValue($item, $key)]->add($item);
         }
@@ -846,7 +849,7 @@ class Collection implements Iterator, ArrayAccess, Countable
         foreach ($this->items as $key => $item) {
             $real_label = call_user_func_array($call, [$item, $key]);
             if (!isset($array[$real_label])) {
-                $array[$real_label] = new static();
+                $array[$real_label] = $this->makeSibling();
             }
             $array[$real_label]->add($item);
         }
@@ -881,7 +884,7 @@ class Collection implements Iterator, ArrayAccess, Countable
             }
             return ($a[$key] > $b[$key]) ? -1 : 1;
         });
-        return new static($items);
+        return $this->makeSibling($items);
     }
 
     /**
@@ -893,7 +896,7 @@ class Collection implements Iterator, ArrayAccess, Countable
     function sortCallback(callable $callback){
         $items = $this->items;
         uasort($items, $callback);
-        return new static($items);
+        return $this->makeSibling($items);
     }
 
     /**
@@ -903,7 +906,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @return Collection
      */
     function reverse(bool $preserve_keys = true){
-        return new static(array_reverse($this->items, $preserve_keys));
+        return $this->makeSibling(array_reverse($this->items, $preserve_keys));
     }
 
     /**
@@ -914,9 +917,13 @@ class Collection implements Iterator, ArrayAccess, Countable
     function shuffle(){
         $items = $this->items;
         shuffle($items);
-        return new static($items);
+        return $this->makeSibling($items);
     }
 
+
+    protected function makeSibling(array $items = null){
+        return new static($items);
+    }
 
     /**
      * Return item value
