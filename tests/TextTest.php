@@ -2,7 +2,7 @@
 
 namespace SitPHP\Helpers\Tests;
 
-use Doublit\TestCase;
+use Doubles\TestCase;
 use SitPHP\Helpers\Text;
 
 class TextTest extends TestCase
@@ -45,8 +45,8 @@ class TextTest extends TestCase
     }
 
     function testChain(){
-        $this->assertEquals(8, mb_strlen(Text::chain(8)));
-        $this->assertNotContains('c', Text::chain(8, 'ab'));
+        $this->assertEquals(8, mb_strlen(Text::chain()));
+        $this->assertStringNotContainsString('c', Text::chain(8, 'ab'));
     }
 
     function testContains(){

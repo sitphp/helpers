@@ -4,7 +4,7 @@
 namespace SitPHP\Helpers\Tests;
 
 
-use Doublit\TestCase;
+use Doubles\TestCase;
 use SitPHP\Helpers\Format;
 
 class FormatTest extends TestCase
