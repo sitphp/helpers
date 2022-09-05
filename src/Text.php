@@ -4,6 +4,8 @@
 namespace SitPHP\Helpers;
 
 
+use InvalidArgumentException;
+
 class Text
 {
     /**
@@ -13,7 +15,7 @@ class Text
      * @param string $needle
      * @return bool
      */
-    static function startsWith(string $haystack, string $needle)
+    static function startsWith(string $haystack, string $needle): bool
     {
         $length = strlen($needle);
         if ($length == 0) {
@@ -25,11 +27,11 @@ class Text
     /**
      * Check if haystack ends with needle
      *
-     * @param $haystack
-     * @param $needle
+     * @param string $haystack
+     * @param string $needle
      * @return bool
      */
-    static function endsWith(string $haystack, string $needle)
+    static function endsWith(string $haystack, string $needle): bool
     {
         $length = strlen($needle);
         if ($length == 0) {
@@ -45,12 +47,12 @@ class Text
      *
      * @param string $haystack
      * @param $needle
-     * @return string
+     * @return bool
      * @see https://www.php.net/manual/function.strstr.php
      */
-    static function contains(string $haystack, $needle)
+    static function contains(string $haystack, $needle): bool
     {
-        return strstr($haystack, $needle) ? true : false;
+        return (bool)strstr($haystack, $needle);
     }
 
     /**
@@ -60,7 +62,7 @@ class Text
      * @param string $allowed_chars
      * @return string
      */
-    static function chain(int $chars = 8, string $allowed_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+    static function chain(int $chars = 8, string $allowed_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"): string
     {
         mt_srand((double)microtime() * 1000000);
         $new_string = "";
@@ -75,11 +77,11 @@ class Text
      *
      * @param string $text
      * @param int $length
-     * @param string $ellipsis
+     * @param string|null $ellipsis
      * @param bool $trim
-     * @return bool|string
+     * @return string
      */
-    static function cut(string $text, int $length, $ellipsis = '...', bool $trim = true)
+    static function cut(string $text, int $length, string $ellipsis = null, bool $trim = true): string
     {
         if ($length < mb_strlen($text)) {
             if ($trim) {
@@ -91,14 +93,9 @@ class Text
             if ($ellipsis === null) {
                 return $text;
             }
-            if (!is_string($ellipsis)) {
-                throw new \InvalidArgumentException('Invalid $ellipsis argument : expected string or null');
-            }
-            $text .= $ellipsis;
-            return $text;
-        } else {
-            return $text;
+            $text .= ' '.$ellipsis;
         }
+        return $text;
     }
 
     /**
@@ -106,15 +103,14 @@ class Text
      *
      * @param string $text
      * @param string $separator_char
-     * @return mixed|string
+     * @return string
      */
-    static function slug(string $text, string $separator_char = '-')
+    static function slug(string $text, string $separator_char = '-'): string
     {
         $text = mb_strtolower($text, 'UTF-8'); // mb_strtolower for uppercase with accents
         $text = self::removeAccents($text);
         $text = str_replace("'", ' ', $text);
-        $text = trim(preg_replace('#[^a-zA-Z0-9-]+#', $separator_char, $text), $separator_char);
-        return $text;
+        return trim(preg_replace('#[^a-zA-Z0-9-]+#', $separator_char, $text), $separator_char);
     }
 
     /**
@@ -124,7 +120,7 @@ class Text
      * @return string
      * @see  https://github.com/WordPress/WordPress/blob/master/wp-includes/formatting.php
      */
-    static function removeAccents(string $text)
+    static function removeAccents(string $text): string
     {
         $chars = array(
             // Decompositions for Latin-1 Supplement
