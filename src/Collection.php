@@ -56,7 +56,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     public function offsetSet($offset, $value)
     {
-        if($offset === null){
+        if ($offset === null) {
             $this->add($value);
         } else {
             $this->set($offset, $value);
@@ -121,8 +121,8 @@ class Collection implements Iterator, ArrayAccess, Countable
 
     function __call($name, array $arguments)
     {
-        if(!array_key_exists($name, $this->extensions)){
-            throw new BadMethodCallException('Undefined "'.$name.'" method');
+        if (!array_key_exists($name, $this->extensions)) {
+            throw new BadMethodCallException('Undefined "' . $name . '" method');
         }
         $extension = $this->extensions[$name];
         return call_user_func_array($extension, $arguments);
@@ -136,10 +136,10 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     function __construct(array $items = null)
     {
-        if($items === null){
+        if ($items === null) {
             return;
         }
-        foreach ($items as $key => $value){
+        foreach ($items as $key => $value) {
             $this->set($key, $value);
         }
     }
@@ -181,7 +181,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     function set($key, $item): Collection
     {
-        if(!is_string($key) && !is_int($key)){
+        if (!is_string($key) && !is_int($key)) {
             throw new InvalidArgumentException('Invalid $key item argument : expected string, int or null');
         }
         $this->items[$key] = $item;
@@ -208,7 +208,7 @@ class Collection implements Iterator, ArrayAccess, Countable
     function getIn(array $keys): Collection
     {
         $items = $this->makeSibling();
-        foreach ($keys as $key){
+        foreach ($keys as $key) {
             $item_value = $this->getItemValue($this->items, $key);
             $items->set($key, $item_value);
         }
@@ -229,14 +229,15 @@ class Collection implements Iterator, ArrayAccess, Countable
      * Return collection of items not matching given keys
      *
      * @param array $keys
+     * @param bool $preserve_keys
      * @return Collection
      */
     function getNotIn(array $keys, bool $preserve_keys = true): Collection
     {
         $items = $this->makeSibling();
         foreach ($this->items as $key => $item) {
-            if(!in_array($key, $keys, true)){
-                $items->addItem($key, $this->getItemValue($this->items, $key),$preserve_keys);
+            if (!in_array($key, $keys, true)) {
+                $items->addItem($key, $this->getItemValue($this->items, $key), $preserve_keys);
             }
         }
         return $items;
@@ -275,10 +276,10 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     function remove($keys): Collection
     {
-        if(is_string($keys)){
+        if (is_string($keys)) {
             $keys = [$keys];
         }
-        foreach ($keys as $key){
+        foreach ($keys as $key) {
             unset($this->items[$key]);
         }
         return $this;
@@ -292,8 +293,8 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     function removeCallback(callable $callback): Collection
     {
-        foreach($this->items as $name => $item){
-            if(call_user_func_array($callback, [$item, $name])){
+        foreach ($this->items as $name => $item) {
+            if (call_user_func_array($callback, [$item, $name])) {
                 unset($this->items[$name]);
             }
         }
@@ -355,7 +356,7 @@ class Collection implements Iterator, ArrayAccess, Countable
     {
         $values = [];
         foreach ($this->items as $key => $item) {
-            $values[$key] =  call_user_func_array($call,[$item, $key]);
+            $values[$key] = call_user_func_array($call, [$item, $key]);
         }
         if ($distinct) {
             $values = array_values(array_unique($values));
@@ -373,7 +374,7 @@ class Collection implements Iterator, ArrayAccess, Countable
      */
     function hasKeyValue(string $key, $value, bool $strict = false): bool
     {
-        return (bool) $this->firstWith($key, $value, $strict);
+        return (bool)$this->firstWith($key, $value, $strict);
     }
 
 
@@ -383,8 +384,9 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @param string $key
      * @return mixed|null
      */
-    function min(string $key){
-        if(empty($this->items)){
+    function min(string $key)
+    {
+        if (empty($this->items)) {
             return null;
         }
         return min($this->getKeyValues($key)->toArray());
@@ -396,8 +398,9 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @param string $key
      * @return mixed
      */
-    function max(string $key){
-        if(empty($this->items)){
+    function max(string $key)
+    {
+        if (empty($this->items)) {
             return null;
         }
         return max($this->getKeyValues($key)->toArray());
@@ -409,24 +412,25 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @param string $key
      * @return mixed
      */
-    function average(string $key){
-        if(empty($this->items)){
+    function average(string $key)
+    {
+        if (empty($this->items)) {
             return null;
         }
         $item_values = $this->getKeyValues($key)->toArray();
-        $key_values = array_filter($item_values, function ($item){
-            if($item === null){
+        $key_values = array_filter($item_values, function ($item) {
+            if ($item === null) {
                 return false;
             }
-            if(!is_int($item) && !is_float($item)){
+            if (!is_int($item) && !is_float($item)) {
                 return false;
             }
             return true;
         });
-        if(empty($key_values)){
+        if (empty($key_values)) {
             return null;
         }
-        return array_sum($key_values)/count($key_values);
+        return array_sum($key_values) / count($key_values);
 
     }
 
@@ -440,13 +444,14 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @param int $num
      * @return mixed
      */
-    function random(int $num){
+    function random(int $num)
+    {
         $rand_keys = array_rand($this->items, $num);
-        if($num === 1){
+        if ($num === 1) {
             return $this->items[$rand_keys];
         }
         $rand_items = $this->makeSibling();
-        foreach($rand_keys as $rand_key){
+        foreach ($rand_keys as $rand_key) {
             $rand_items[$rand_key] = $this->items[$rand_key];
         }
         return $rand_items;
@@ -460,10 +465,10 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @param bool $preserve_keys
      * @return array
      */
-    function chunk(int $size , bool $preserve_keys = true): array
+    function chunk(int $size, bool $preserve_keys = true): array
     {
         $chunks = [];
-        foreach(array_chunk($this->items, $size, $preserve_keys) as $array_chunk){
+        foreach (array_chunk($this->items, $size, $preserve_keys) as $array_chunk) {
             $chunks[] = $this->makeSibling($array_chunk);
         }
         return $chunks;
@@ -479,7 +484,7 @@ class Collection implements Iterator, ArrayAccess, Countable
     function splice($offset, int $length = null): Collection
     {
         $items = $this->items;
-        array_splice($items,$offset, $length);
+        array_splice($items, $offset, $length);
         return $this->makeSibling($items);
     }
 
@@ -515,7 +520,8 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @return mixed
      * @see https://www.php.net/manual/function.array-reduce.php
      */
-    function reduce(callable $callback){
+    function reduce(callable $callback)
+    {
         return array_reduce($this->items, $callback);
     }
 
@@ -562,11 +568,11 @@ class Collection implements Iterator, ArrayAccess, Countable
     function firstIn(string $key, array $values, bool $strict = true)
     {
         $found = null;
-        if($strict){
+        if ($strict) {
             foreach ($this->items as $item) {
                 $item_value = $this->getItemValue($item, $key);
-                foreach ($values as $value){
-                    if($value === $item_value){
+                foreach ($values as $value) {
+                    if ($value === $item_value) {
                         $found = $item;
                         break 2;
                     }
@@ -575,8 +581,8 @@ class Collection implements Iterator, ArrayAccess, Countable
         } else {
             foreach ($this->items as $item) {
                 $item_value = $this->getItemValue($item, $key);
-                foreach ($values as $value){
-                    if($value == $item_value){
+                foreach ($values as $value) {
+                    if ($value == $item_value) {
                         $found = $item;
                         break 2;
                     }
@@ -625,18 +631,19 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @param bool $strict
      * @return mixed|null
      */
-    function firstNotIn(string $key, array $values, bool $strict = true){
+    function firstNotIn(string $key, array $values, bool $strict = true)
+    {
         $found = null;
-        if($strict){
+        if ($strict) {
             foreach ($this->items as $item) {
                 $item_value = $this->getItemValue($item, $key);
                 $not_in = true;
-                foreach ($values as $value){
-                    if($value === $item_value){
+                foreach ($values as $value) {
+                    if ($value === $item_value) {
                         $not_in = false;
                     }
                 }
-                if($not_in){
+                if ($not_in) {
                     $found = $item;
                     break;
                 }
@@ -645,12 +652,12 @@ class Collection implements Iterator, ArrayAccess, Countable
             foreach ($this->items as $item) {
                 $item_value = $this->getItemValue($item, $key);
                 $not_in = true;
-                foreach ($values as $value){
-                    if($value == $item_value){
+                foreach ($values as $value) {
+                    if ($value == $item_value) {
                         $not_in = false;
                     }
                 }
-                if($not_in){
+                if ($not_in) {
                     $found = $item;
                     break;
                 }
@@ -719,11 +726,11 @@ class Collection implements Iterator, ArrayAccess, Countable
     function lastIn(string $key, array $values, bool $strict = true)
     {
         $found = null;
-        if($strict){
+        if ($strict) {
             foreach ($this->items as $item) {
                 $item_value = $this->getItemValue($item, $key);
-                foreach ($values as $value){
-                    if($value === $item_value){
+                foreach ($values as $value) {
+                    if ($value === $item_value) {
                         $found = $item;
                         break;
                     }
@@ -732,8 +739,8 @@ class Collection implements Iterator, ArrayAccess, Countable
         } else {
             foreach ($this->items as $item) {
                 $item_value = $this->getItemValue($item, $key);
-                foreach ($values as $value){
-                    if($value == $item_value){
+                foreach ($values as $value) {
+                    if ($value == $item_value) {
                         $found = $item;
                         break;
                     }
@@ -780,18 +787,19 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @param bool $strict
      * @return mixed|null
      */
-    function lastNotIn(string $key, array $values, bool $strict = true){
+    function lastNotIn(string $key, array $values, bool $strict = true)
+    {
         $found = null;
-        if($strict){
+        if ($strict) {
             foreach ($this->items as $item) {
                 $item_value = $this->getItemValue($item, $key);
                 $not_in = true;
-                foreach ($values as $value){
-                    if($value === $item_value){
+                foreach ($values as $value) {
+                    if ($value === $item_value) {
                         $not_in = false;
                     }
                 }
-                if($not_in){
+                if ($not_in) {
                     $found = $item;
                 }
             }
@@ -799,12 +807,12 @@ class Collection implements Iterator, ArrayAccess, Countable
             foreach ($this->items as $item) {
                 $item_value = $this->getItemValue($item, $key);
                 $not_in = true;
-                foreach ($values as $value){
-                    if($value == $item_value){
+                foreach ($values as $value) {
+                    if ($value == $item_value) {
                         $not_in = false;
                     }
                 }
-                if($not_in){
+                if ($not_in) {
                     $found = $item;
                 }
             }
@@ -845,7 +853,7 @@ class Collection implements Iterator, ArrayAccess, Countable
     function filterBy(string $key, $value, bool $strict = true, bool $preserve_keys = false): Collection
     {
         $found = $this->makeSibling();
-        if($strict){
+        if ($strict) {
             foreach ($this->items as $item) {
                 if ($this->getItemValue($item, $key) === $value) {
                     $found->addItem($key, $item, $preserve_keys);
@@ -873,7 +881,7 @@ class Collection implements Iterator, ArrayAccess, Countable
     function filterNotBy($key, $value, bool $strict = true, bool $preserve_keys = false): Collection
     {
         $found = $this->makeSibling();
-        if($strict){
+        if ($strict) {
             foreach ($this->items as $item) {
                 $item_value = $this->getItemValue($item, $key);
                 if ($item_value !== $value) {
@@ -903,7 +911,7 @@ class Collection implements Iterator, ArrayAccess, Countable
     function filterIn(string $key, array $values, bool $strict = true, bool $preserve_keys = false): Collection
     {
         $found = $this->makeSibling();
-        if($strict) {
+        if ($strict) {
             foreach ($this->items as $item) {
                 $item_value = $this->getItemValue($item, $key);
                 foreach ($values as $value) {
@@ -938,7 +946,7 @@ class Collection implements Iterator, ArrayAccess, Countable
     function filterNotIn(string $key, array $values, bool $strict = true, bool $preserve_keys = false): Collection
     {
         $found = $this->makeSibling();
-        if($strict) {
+        if ($strict) {
             foreach ($this->items as $item) {
                 $item_value = $this->getItemValue($item, $key);
                 $not_in = true;
@@ -947,7 +955,7 @@ class Collection implements Iterator, ArrayAccess, Countable
                         $not_in = false;
                     }
                 }
-                if($not_in){
+                if ($not_in) {
                     $found->addItem($key, $item, $preserve_keys);
                 }
             }
@@ -960,7 +968,7 @@ class Collection implements Iterator, ArrayAccess, Countable
                         $not_in = false;
                     }
                 }
-                if($not_in){
+                if ($not_in) {
                     $found->addItem($key, $item, $preserve_keys);
                 }
             }
@@ -1003,7 +1011,7 @@ class Collection implements Iterator, ArrayAccess, Countable
         $groups = [];
         foreach ($this->items as $item_key => $item) {
             $value = $this->getItemValue($item, $key);
-            if(!is_string($value) && !is_int($value)){
+            if (!is_string($value) && !is_int($value)) {
                 $groups[] = $item;
             } else {
                 if (!isset($groups[$value])) {
@@ -1047,17 +1055,17 @@ class Collection implements Iterator, ArrayAccess, Countable
     function sortBy(string $key, bool $reverse = false): Collection
     {
         $items = $this->items;
-        uasort($items, function($a, $b) use($key, $reverse){
+        uasort($items, function ($a, $b) use ($key, $reverse) {
             if ($a[$key] === $b[$key]) {
                 return 0;
             }
-            if($a[$key] === null){
+            if ($a[$key] === null) {
                 return 1;
             }
-            if($b[$key] === null){
+            if ($b[$key] === null) {
                 return -1;
             }
-            if(!$reverse){
+            if (!$reverse) {
                 return ($a[$key] < $b[$key]) ? -1 : 1;
             }
             return ($a[$key] > $b[$key]) ? -1 : 1;
@@ -1102,8 +1110,9 @@ class Collection implements Iterator, ArrayAccess, Countable
     }
 
 
-    function extend(string $name, callable $callback){
-        if($callback instanceof Closure){
+    function extend(string $name, callable $callback)
+    {
+        if ($callback instanceof Closure) {
             $callback = $callback->bindTo($this, static::class);
         }
         $this->extensions[$name] = $callback;
@@ -1121,22 +1130,23 @@ class Collection implements Iterator, ArrayAccess, Countable
      * @param string $key
      * @return mixed|null
      */
-    protected function getItemValue($item, string $key){
+    protected function getItemValue($item, string $key)
+    {
         $value = null;
         $key_parts = explode('.', $key);
         foreach ($key_parts as $key_part) {
-            if(is_array($item)){
+            if (is_array($item)) {
                 if (!array_key_exists($key_part, $item)) {
                     $value = null;
                     break;
                 }
                 $value = $item[$key_part];
                 $item = $value;
-            } else if($item instanceof Closure){
+            } else if ($item instanceof Closure) {
                 $value = $item($key_part);
                 $item = $value;
-            } else if(is_object($item)){
-                if(!property_exists($item, $key_part)){
+            } else if (is_object($item)) {
+                if (!property_exists($item, $key_part)) {
                     $value = null;
                     break;
                 }
@@ -1150,8 +1160,9 @@ class Collection implements Iterator, ArrayAccess, Countable
         return $value;
     }
 
-    protected function addItem($key, $item, bool $with_key = false){
-        if($with_key) {
+    protected function addItem($key, $item, bool $with_key = false)
+    {
+        if ($with_key) {
             $this->set($key, $item);
         } else {
             $this->add($item);

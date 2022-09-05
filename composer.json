@@ -1,28 +1,28 @@
 {
-    "name": "sitphp/helpers",
-    "description": "Simple PHP helpers",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Alexandre GEISWILLER",
-            "email": "alexandre.geiswiller@gmail.com"
-        }
-    ],
-    "require": {
-        "php": ">=7.2"
-    },
-    "require-dev": {
-        "sitphp/doubles": "~v2.3.1"
-    },
-    "autoload": {
-        "psr-4": {
-            "SitPHP\\Helpers\\": "src"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "SitPHP\\Helpers\\Tests\\": "tests"
-        }
+  "name": "sitphp/helpers",
+  "description": "Simple PHP helpers",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Alexandre GEISWILLER",
+      "email": "alexandre.geiswiller@gmail.com"
     }
+  ],
+  "require": {
+    "php": ">=7.2"
+  },
+  "require-dev": {
+    "sitphp/doubles": "2.4.*"
+  },
+  "autoload": {
+    "psr-4": {
+      "SitPHP\\Helpers\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "SitPHP\\Helpers\\Tests\\": "tests"
+    }
+  }
 }
